@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wolt Image Tool</title>
+<link rel="icon" type="image/png" href="/wolt-logo.png" />
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="top-bar">
+      <div class="brand">
+        <img class="brand-mark" src="/wolt-logo.png" alt="Wolt" />
+        <div class="brand-text">
+          <span class="brand-title">Wolt Image Tool</span>
+          <span class="brand-subtitle">Bulk image download &amp; resize</span>
+        </div>
+      </div>
+      <button id="theme-toggle" class="icon-button" type="button" aria-label="Toggle color theme" title="Toggle color theme">
+        <svg class="icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke-linecap="round"/></svg>
+        <svg class="icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" stroke-linejoin="round"/></svg>
+      </button>
+    </header>
+
+    <main class="layout">
+      <aside class="card settings-panel" id="card-settings">
+        <h2 class="card-title">Configure output</h2>
+
+        <div class="field-group">
+          <span class="field-label">Add a filename prefix?</span>
+          <div class="segmented" id="prefix-toggle">
+            <button type="button" class="segmented-option is-active" data-value="no">No prefix</button>
+            <button type="button" class="segmented-option" data-value="yes">Add prefix</button>
+          </div>
+          <input type="text" class="text-input hidden" id="prefix-input" placeholder="e.g. wMXR_" maxlength="40" />
+        </div>
+
+        <div class="field-group">
+          <span class="field-label">Output size</span>
+          <div class="segmented" id="size-toggle">
+            <button type="button" class="segmented-option is-active" data-value="default">Default</button>
+            <button type="button" class="segmented-option" data-value="custom">Custom</button>
+          </div>
+          <p class="size-note" id="default-size-note">2880 × 1620 px</p>
+          <div class="dimension-row hidden" id="dimension-row">
+            <label class="dimension-field">
+              <span>Width (px)</span>
+              <input type="number" id="width-input" min="100" max="8000" value="2880" />
+            </label>
+            <label class="dimension-field">
+              <span>Height (px)</span>
+              <input type="number" id="height-input" min="100" max="8000" value="1620" />
+            </label>
+          </div>
+        </div>
+
+        <label class="field-group padding-field-group">
+          <span class="field-label">Product size within frame: <span id="padding-value">50</span>%</span>
+          <input type="range" id="padding-input" min="10" max="100" value="50" />
+          <p class="size-note">Default is 50%</p>
+        </label>
+
+        <button type="button" class="primary-button full-width" id="start-button" disabled>Start processing</button>
+      </aside>
+
+      <div class="content-panel">
+      <section class="card" id="card-upload">
+        <h2 class="card-title">Upload your Excel file</h2>
+        <p class="card-hint">Column A: image links. Column B: SKUs (used as the output filenames).</p>
+
+        <label class="dropzone" id="dropzone" for="file-input">
+          <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 15.5V4M12 4 8 8M12 4l4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 15.5v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="dropzone-title">Drag &amp; drop your <strong>.xlsx</strong> file here</span>
+          <span class="dropzone-sub">or click to browse</span>
+          <input type="file" id="file-input" accept=".xlsx,.xls" hidden />
+        </label>
+
+        <div class="file-chip hidden" id="file-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="file-chip-icon"><path d="M7 3h7l3 3v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke-linejoin="round"/><path d="M14 3v3h3" stroke-linejoin="round"/></svg>
+          <span class="file-chip-name" id="file-chip-name"></span>
+          <button type="button" class="link-button" id="file-chip-change">Change file</button>
+        </div>
+
+        <div class="preview hidden" id="preview-box">
+          <div class="preview-count" id="preview-count"></div>
+          <div class="preview-table-wrap" id="preview-table-wrap">
+            <table class="preview-table" id="preview-table">
+              <thead><tr><th>SKU</th><th>Image link</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="sample-preview-block">
+            <span class="field-label">Preview a sample image</span>
+            <div class="sample-preview-controls">
+              <div class="combobox" id="sample-preview-combobox">
+                <input type="text" class="text-input" id="sample-preview-select" placeholder="Search or pick a SKU…" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" />
+                <div class="combobox-menu hidden" id="sample-preview-menu"></div>
+              </div>
+              <button type="button" class="secondary-button" id="sample-preview-button">Preview image</button>
+            </div>
+            <div class="sample-preview hidden" id="sample-preview">
+              <img id="sample-preview-image" alt="Processed preview" />
+              <div class="sample-preview-meta">
+                <span id="sample-preview-sku"></span>
+                <a id="sample-preview-original-link" href="#" target="_blank" rel="noopener noreferrer">View original image</a>
+              </div>
+            </div>
+            <p class="error-text hidden" id="sample-preview-error"></p>
+          </div>
+        </div>
+
+        <p class="error-text hidden" id="upload-error"></p>
+      </section>
+
+      <section class="card hidden" id="card-run">
+        <h2 class="card-title">Processing</h2>
+
+        <div class="progress-block" id="progress-block">
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+          </div>
+          <div class="progress-stats">
+            <span id="progress-text">0 / 0 processed</span>
+            <span class="stat-pill stat-success" id="stat-success">0 succeeded</span>
+            <span class="stat-pill stat-danger" id="stat-failed">0 failed</span>
+          </div>
+          <div class="progress-timing">
+            <span id="stat-elapsed">Elapsed 0:00</span>
+            <span id="stat-eta"></span>
+          </div>
+          <button type="button" class="secondary-button hidden" id="cancel-button">Stop processing</button>
+        </div>
+
+        <div class="result-block hidden" id="result-block">
+          <p class="result-summary" id="result-summary"></p>
+          <div class="result-actions">
+            <button type="button" class="primary-button" id="download-button">Download ZIP</button>
+            <button type="button" class="secondary-button" id="reset-button">Start another file</button>
+          </div>
+          <details class="failures hidden" id="failures-box">
+            <summary>View failed rows (<span id="failures-count">0</span>)</summary>
+            <table class="preview-table failures-table">
+              <thead><tr><th>SKU</th><th>Reason</th><th>Link</th></tr></thead>
+              <tbody id="failures-body"></tbody>
+            </table>
+          </details>
+        </div>
+
+        <p class="error-text hidden" id="run-error"></p>
+      </section>
+      </div>
+    </main>
+
+    <footer class="page-footer">
+      <span>Internal tool for Wolt team</span>
+      <span>Built by Balala &middot; <a href="https://doordash.enterprise.slack.com/team/U0BBJ9VQ021" id="slack-link" target="_blank" rel="noopener noreferrer">Slack</a> for feedback or tool requests</span>
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
